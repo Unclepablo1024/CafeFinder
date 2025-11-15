@@ -15,11 +15,26 @@ const Home = () => {
       try {
         // Test if backend is accessible first
         await axios.get('/api/health')
-        
-        // Get cafes from search endpoint since popular endpoint might not be working
-        const cafesRes = await axios.get('/api/cafes/public/search')
-        setPopularCafes(Array.isArray(cafesRes.data) ? cafesRes.data.slice(0, 6) : [])
-        
+
+        // Try to get nearby cafes for the home page
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(
+            async (position) => {
+              const nearbyRes = await axios.get(`/api/cafes/public/search?lat=${position.coords.latitude}&lng=${position.coords.longitude}&radius=10`)
+              setPopularCafes(Array.isArray(nearbyRes.data) ? nearbyRes.data.slice(0, 6) : [])
+            },
+            async () => {
+              // Fallback to popular cafes if location access denied
+              const cafesRes = await axios.get('/api/cafes/public/popular?limit=6')
+              setPopularCafes(Array.isArray(cafesRes.data) ? cafesRes.data : [])
+            }
+          )
+        } else {
+          // Fallback to popular cafes if geolocation not supported
+          const cafesRes = await axios.get('/api/cafes/public/popular?limit=6')
+          setPopularCafes(Array.isArray(cafesRes.data) ? cafesRes.data : [])
+        }
+
         // Try to get reviews, but don't fail if it doesn't work
         try {
           const reviewsRes = await axios.get('/api/reviews/public/recent?limit=5')
@@ -31,7 +46,7 @@ const Home = () => {
       } catch (error) {
         console.error('Error fetching data:', error)
         console.error('Make sure your backend is running on http://localhost:8080')
-        
+
         // Set empty arrays as fallback
         setPopularCafes([])
         setRecentReviews([])
@@ -66,11 +81,11 @@ const Home = () => {
         </p>
         
         <div className="mt-8 flex justify-center space-x-4">
-          <Link to="/search" className="btn-primary text-lg px-8 py-3">
+          <Link to="/search?nearby=true" className="btn-primary text-lg px-8 py-3">
             Explore Cafes
           </Link>
-          <Link to="/search?nearby=true" className="btn-secondary text-lg px-8 py-3">
-            Find Nearby
+          <Link to="/search" className="btn-secondary text-lg px-8 py-3">
+            Browse All Cafes
           </Link>
         </div>
       </div>

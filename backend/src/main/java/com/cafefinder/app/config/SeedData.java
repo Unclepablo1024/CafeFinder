@@ -9,9 +9,11 @@ import com.cafefinder.app.repo.CafeRepo;
 import com.cafefinder.app.repo.UserRepo;
 import com.cafefinder.app.repo.ReviewRepo;
 import com.cafefinder.app.repo.BusyRepo;
+import com.cafefinder.app.service.GooglePlacesService;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -20,7 +22,12 @@ import java.util.*;
 @Configuration
 public class SeedData {
     @Bean
-    CommandLineRunner init(CafeRepo cafes, UserRepo users, ReviewRepo reviews, BusyRepo busyRepo, PasswordEncoder encoder){
+    public RestTemplate restTemplate() {
+        return new RestTemplate();
+    }
+
+    @Bean
+    CommandLineRunner init(CafeRepo cafes, UserRepo users, ReviewRepo reviews, BusyRepo busyRepo, PasswordEncoder encoder, GooglePlacesService googlePlacesService){
         return args -> {
             // Create sample users if none exist
             if(users.count() == 0){
@@ -30,14 +37,25 @@ public class SeedData {
                 }
                 System.out.println("Created " + sampleUsers.size() + " sample users");
             }
-            
-            // Create sample cafes if none exist
+
+            // Create sample cafes from Google Places API if none exist
             if(cafes.count() == 0){
-                List<Cafe> sampleCafes = SeedDataHelper.createSampleCafes();
-                for (Cafe cafe : sampleCafes) {
-                    cafes.save(cafe);
+                try {
+                    System.out.println("Fetching cafes from Google Places API...");
+                    List<Cafe> sampleCafes = googlePlacesService.searchCafes("coffee shops in Atlanta");
+                    for (Cafe cafe : sampleCafes) {
+                        cafes.save(cafe);
+                    }
+                    System.out.println("Created " + sampleCafes.size() + " cafes from Google Places API");
+                } catch (Exception e) {
+                    System.err.println("Failed to fetch cafes from Google Places API: " + e.getMessage());
+                    System.out.println("Falling back to static sample cafes...");
+                    List<Cafe> sampleCafes = SeedDataHelper.createSampleCafes();
+                    for (Cafe cafe : sampleCafes) {
+                        cafes.save(cafe);
+                    }
+                    System.out.println("Created " + sampleCafes.size() + " fallback sample cafes");
                 }
-                System.out.println("Created " + sampleCafes.size() + " sample cafes");
             } else {
                 // Update existing cafes with correct hours (including Sunday)
                 System.out.println("Updating hours for existing cafes to include Sunday...");
