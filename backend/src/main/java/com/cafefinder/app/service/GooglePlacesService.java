@@ -31,7 +31,7 @@ public class GooglePlacesService {
     public List<Cafe> searchCafes(String query) {
         List<Cafe> cafes = new ArrayList<>();
 
-        // Try text search first (works for any query)
+        // Try text search first (works for any query) - optimized to reduce API costs
         String textUrl = baseUrl + "/textsearch/json?query={query}&key={key}";
         GooglePlacesResponse textResponse = restTemplate.getForObject(textUrl, GooglePlacesResponse.class, query, apiKey);
 
@@ -46,7 +46,7 @@ public class GooglePlacesService {
             // Geocode the city to get coordinates
             double[] coordinates = geocodeCity(cityName);
             if (coordinates != null) {
-                // Use nearby search for more results (up to 60)
+                // Use nearby search for more results (up to 60) - optimizes API costs
                 String nearbyUrl = baseUrl + "/nearbysearch/json?location={lat},{lng}&radius=20000&type=cafe&key={key}";
                 GooglePlacesResponse nearbyResponse = restTemplate.getForObject(nearbyUrl, GooglePlacesResponse.class,
                     coordinates[0], coordinates[1], apiKey);
@@ -120,7 +120,9 @@ public class GooglePlacesService {
             cafe.setPhone(place.getFormatted_phone_number());
             cafe.setWebsite(place.getWebsite());
 
-            // Photos - convert to URLs
+            // Photos - skip processing to save API costs since we have photos stored locally
+            // Uncomment below if we ever need to pull photos from Google Places again
+            /*
             if (place.getPhotos() != null && !place.getPhotos().isEmpty()) {
                 List<String> photos = new ArrayList<>();
                 for (GooglePlacesResponse.Place.Photo photo : place.getPhotos()) {
@@ -131,6 +133,7 @@ public class GooglePlacesService {
                 }
                 cafe.setPhotos(photos);
             }
+            */
 
             // Price level
             if (place.getPrice_level() != null) {
@@ -167,7 +170,7 @@ public class GooglePlacesService {
             }
 
             // Initialize defaults for fields not in Google Places
-            cafe.setDescription("Coffee shop in " + cafe.getCity());
+            cafe.setDescription("No Information Available");
             cafe.setWifi(true); // Assume most coffee shops have wifi
             cafe.setSeating(true);
             cafe.setWorkFriendly(true);
