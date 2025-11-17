@@ -1,0 +1,14 @@
+target/
+.mvn/
+*.class
+*.jar
+*.war
+*.ear
+*.log
+.git
+.gitignore
+.DS_Store
+*.md
+node_modules/
+frontend/
+
