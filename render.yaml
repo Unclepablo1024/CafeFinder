@@ -2,8 +2,9 @@ services:
   - type: web
     name: cafe-finder-backend
     runtime: java
+    plan: free
     buildCommand: "cd backend && mvn clean package -DskipTests"
-    startCommand: "cd backend && java -jar target/*.jar"
+    startCommand: "cd backend && java -jar target/cafe-finder-0.0.1-SNAPSHOT.jar"
     envVars:
       - key: MONGODB_URI
         sync: false
@@ -13,13 +14,12 @@ services:
         sync: false
       - key: CORS_ALLOWED_ORIGINS
         sync: false
-      - key: SERVER_PORT
-        value: 10000
+      # PORT is automatically provided by Render, no need to set it
 
   - type: web
     name: cafe-finder-frontend
     runtime: static
-    buildCommand: "cd frontend && npm run build"
+    buildCommand: "cd frontend && npm install && npm run build"
     staticPublishPath: "frontend/dist"
     envVars:
       - key: VITE_API_URL
