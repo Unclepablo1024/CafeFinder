@@ -2,7 +2,7 @@ services:
   - type: web
     name: cafe-finder-backend
     runtime: java
-    buildCommand: "cd backend && ./mvnw clean package -DskipTests"
+    buildCommand: "cd backend && mvn clean package -DskipTests"
     startCommand: "cd backend && java -jar target/*.jar"
     envVars:
       - key: MONGODB_URI
