@@ -13,22 +13,56 @@ public class SeedDataHelper {
     public static List<User> createSampleUsers(PasswordEncoder encoder) {
         List<User> sampleUsers = new ArrayList<>();
         
-        // Create admin user first
-        User admin = new User();
-        admin.setUsername("admin");
-        admin.setEmail("admin@cafefinder.com");
-        admin.setPasswordHash(encoder.encode("admin123"));
-        admin.setFirstName("Admin");
-        admin.setLastName("User");
-        admin.setCreatedAt(Instant.now().minus(60, ChronoUnit.DAYS));
-        admin.setActive(true);
-        admin.setVerified(true);
-        admin.setRoles(Set.of("ADMIN", "USER")); // Admin has both roles
-        admin.setReputation(500);
-        admin.setTotalReviews(0);
-        admin.setLocation("Atlanta, GA");
-        admin.setBio("CafeFinder Administrator");
-        sampleUsers.add(admin);
+        // Create admin users
+        User admin1 = new User();
+        admin1.setUsername("admin");
+        admin1.setEmail("admin@cafefinder.com");
+        admin1.setPasswordHash(encoder.encode("admin123"));
+        admin1.setFirstName("Admin");
+        admin1.setLastName("User");
+        admin1.setCreatedAt(Instant.now().minus(60, ChronoUnit.DAYS));
+        admin1.setActive(true);
+        admin1.setVerified(true);
+        admin1.setRoles(Set.of("ADMIN", "USER"));
+        admin1.setReputation(500);
+        admin1.setTotalReviews(0);
+        admin1.setLocation("Atlanta, GA");
+        admin1.setBio("CafeFinder Administrator");
+        sampleUsers.add(admin1);
+        
+        // Second admin account
+        User admin2 = new User();
+        admin2.setUsername("admin2");
+        admin2.setEmail("admin2@cafefinder.com");
+        admin2.setPasswordHash(encoder.encode("Admin2024!"));
+        admin2.setFirstName("Sarah");
+        admin2.setLastName("Johnson");
+        admin2.setCreatedAt(Instant.now().minus(45, ChronoUnit.DAYS));
+        admin2.setActive(true);
+        admin2.setVerified(true);
+        admin2.setRoles(Set.of("ADMIN", "USER"));
+        admin2.setReputation(450);
+        admin2.setTotalReviews(12);
+        admin2.setLocation("Atlanta, GA");
+        admin2.setBio("Senior Administrator - Content Moderation");
+        sampleUsers.add(admin2);
+        
+        // Third admin account
+        User admin3 = new User();
+        admin3.setUsername("admin3");
+        admin3.setEmail("admin3@cafefinder.com");
+        admin3.setPasswordHash(encoder.encode("SecurePass123!"));
+        admin3.setFirstName("Michael");
+        admin3.setLastName("Chen");
+        admin3.setCreatedAt(Instant.now().minus(30, ChronoUnit.DAYS));
+        admin3.setActive(true);
+        admin3.setVerified(true);
+        admin3.setRoles(Set.of("ADMIN", "USER"));
+        admin3.setReputation(400);
+        admin3.setTotalReviews(8);
+        admin3.setLocation("Atlanta, GA");
+        admin3.setBio("System Administrator - Technical Operations");
+        sampleUsers.add(admin3);
         
         // Create regular users
         String[] usernames = {"coffeelover", "atlantalocal", "workremote", "espressofan", "reviewer123"};
@@ -53,6 +87,64 @@ public class SeedDataHelper {
         }
         
         return sampleUsers;
+    }
+    
+    // Separate method to create just admin users (for adding to existing database)
+    public static List<User> createAdminUsers(PasswordEncoder encoder) {
+        List<User> adminUsers = new ArrayList<>();
+        
+        // First admin account
+        User admin1 = new User();
+        admin1.setUsername("admin");
+        admin1.setEmail("admin@cafefinder.com");
+        admin1.setPasswordHash(encoder.encode("admin123"));
+        admin1.setFirstName("Admin");
+        admin1.setLastName("User");
+        admin1.setCreatedAt(Instant.now().minus(60, ChronoUnit.DAYS));
+        admin1.setActive(true);
+        admin1.setVerified(true);
+        admin1.setRoles(Set.of("ADMIN", "USER"));
+        admin1.setReputation(500);
+        admin1.setTotalReviews(0);
+        admin1.setLocation("Atlanta, GA");
+        admin1.setBio("CafeFinder Administrator");
+        adminUsers.add(admin1);
+        
+        // Second admin account
+        User admin2 = new User();
+        admin2.setUsername("admin2");
+        admin2.setEmail("admin2@cafefinder.com");
+        admin2.setPasswordHash(encoder.encode("Admin2024!"));
+        admin2.setFirstName("Sarah");
+        admin2.setLastName("Johnson");
+        admin2.setCreatedAt(Instant.now().minus(45, ChronoUnit.DAYS));
+        admin2.setActive(true);
+        admin2.setVerified(true);
+        admin2.setRoles(Set.of("ADMIN", "USER"));
+        admin2.setReputation(450);
+        admin2.setTotalReviews(12);
+        admin2.setLocation("Atlanta, GA");
+        admin2.setBio("Senior Administrator - Content Moderation");
+        adminUsers.add(admin2);
+        
+        // Third admin account
+        User admin3 = new User();
+        admin3.setUsername("admin3");
+        admin3.setEmail("admin3@cafefinder.com");
+        admin3.setPasswordHash(encoder.encode("SecurePass123!"));
+        admin3.setFirstName("Michael");
+        admin3.setLastName("Chen");
+        admin3.setCreatedAt(Instant.now().minus(30, ChronoUnit.DAYS));
+        admin3.setActive(true);
+        admin3.setVerified(true);
+        admin3.setRoles(Set.of("ADMIN", "USER"));
+        admin3.setReputation(400);
+        admin3.setTotalReviews(8);
+        admin3.setLocation("Atlanta, GA");
+        admin3.setBio("System Administrator - Technical Operations");
+        adminUsers.add(admin3);
+        
+        return adminUsers;
     }
 
     public static List<Cafe> createSampleCafes() {

@@ -1,10 +1,7 @@
 package com.cafefinder.app.config;
 
 import com.cafefinder.app.model.Cafe;
-import com.cafefinder.app.model.MenuItem;
 import com.cafefinder.app.model.User;
-import com.cafefinder.app.model.Review;
-import com.cafefinder.app.model.BusyEntry;
 import com.cafefinder.app.repo.CafeRepo;
 import com.cafefinder.app.repo.UserRepo;
 import com.cafefinder.app.repo.ReviewRepo;
@@ -15,8 +12,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 @Configuration
@@ -36,6 +31,20 @@ public class SeedData {
                     users.save(user);
                 }
                 System.out.println("Created " + sampleUsers.size() + " sample users");
+            } else {
+                // Ensure admin accounts exist even if users already exist
+                List<User> adminUsers = SeedDataHelper.createAdminUsers(encoder);
+                int createdCount = 0;
+                for (User admin : adminUsers) {
+                    if (!users.findByUsername(admin.getUsername()).isPresent()) {
+                        users.save(admin);
+                        createdCount++;
+                        System.out.println("Created admin account: " + admin.getUsername());
+                    }
+                }
+                if (createdCount > 0) {
+                    System.out.println("Created " + createdCount + " additional admin accounts");
+                }
             }
 
             // Create sample cafes from Google Places API if none exist
