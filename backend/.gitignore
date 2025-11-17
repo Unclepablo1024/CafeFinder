@@ -8,10 +8,10 @@ target/
 .env
 .env.local
 
-# IDE
-.idea/
-*.iws
-*.iml
+# Railway
+railway.json
+
+# JAR files
 *.ipr
 .vscode/
 .classpath
@@ -35,4 +35,3 @@ target/
 
 # Virtual machine crash logs
 hs_err_pid*
-
