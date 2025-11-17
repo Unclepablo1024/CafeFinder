@@ -47,23 +47,38 @@ public class SeedData {
                 }
             }
 
-            // Create sample cafes from Google Places API if none exist
+            // Create sample cafes - try Google Places API first, but always fallback to static data
             if(cafes.count() == 0){
-                try {
-                    System.out.println("Fetching cafes from Google Places API...");
-                    List<Cafe> sampleCafes = googlePlacesService.searchCafes("coffee shops in Atlanta");
+                List<Cafe> sampleCafes = null;
+                
+                // Try Google Places API only if API key is configured (optional)
+                String apiKey = System.getenv("GOOGLE_PLACES_API_KEY");
+                if (apiKey != null && !apiKey.isBlank()) {
+                    try {
+                        System.out.println("Fetching cafes from Google Places API...");
+                        sampleCafes = googlePlacesService.searchCafes("coffee shops in Atlanta");
+                        if (sampleCafes != null && !sampleCafes.isEmpty()) {
+                            for (Cafe cafe : sampleCafes) {
+                                cafes.save(cafe);
+                            }
+                            System.out.println("Created " + sampleCafes.size() + " cafes from Google Places API");
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Failed to fetch cafes from Google Places API: " + e.getMessage());
+                        System.out.println("Falling back to static sample cafes...");
+                        sampleCafes = null; // Force fallback
+                    }
+                } else {
+                    System.out.println("Google Places API key not configured, using static sample cafes...");
+                }
+                
+                // Always use fallback if Google Places failed or API key not set
+                if (sampleCafes == null || sampleCafes.isEmpty()) {
+                    sampleCafes = SeedDataHelper.createSampleCafes();
                     for (Cafe cafe : sampleCafes) {
                         cafes.save(cafe);
                     }
-                    System.out.println("Created " + sampleCafes.size() + " cafes from Google Places API");
-                } catch (Exception e) {
-                    System.err.println("Failed to fetch cafes from Google Places API: " + e.getMessage());
-                    System.out.println("Falling back to static sample cafes...");
-                    List<Cafe> sampleCafes = SeedDataHelper.createSampleCafes();
-                    for (Cafe cafe : sampleCafes) {
-                        cafes.save(cafe);
-                    }
-                    System.out.println("Created " + sampleCafes.size() + " fallback sample cafes");
+                    System.out.println("Created " + sampleCafes.size() + " static sample cafes");
                 }
             } else {
                 // Update existing cafes with correct hours (including Sunday)

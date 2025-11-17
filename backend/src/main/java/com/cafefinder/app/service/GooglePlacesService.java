@@ -16,10 +16,10 @@ import java.util.HashMap;
 @Service
 public class GooglePlacesService {
 
-    @Value("${google.places.api.key}")
+    @Value("${google.places.api.key:}")
     private String apiKey;
 
-    @Value("${google.places.api.base.url}")
+    @Value("${google.places.api.base.url:https://maps.googleapis.com/maps/api/place}")
     private String baseUrl;
 
     private final RestTemplate restTemplate;
@@ -30,6 +30,12 @@ public class GooglePlacesService {
 
     public List<Cafe> searchCafes(String query) {
         List<Cafe> cafes = new ArrayList<>();
+
+        // Check if API key is configured
+        if (apiKey == null || apiKey.isBlank()) {
+            System.out.println("Google Places API key not configured, returning empty list");
+            return cafes;
+        }
 
         // Try text search first (works for any query) - optimized to reduce API costs
         String textUrl = baseUrl + "/textsearch/json?query={query}&key={key}";

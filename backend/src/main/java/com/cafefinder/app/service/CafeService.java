@@ -36,48 +36,10 @@ public class CafeService {
                                        Boolean wifi, Boolean seating, Boolean workFriendly,
                                        String priceRange, Double minRating) {
 
-        // First, perform database search
+        // Always use database as primary source - no Google Places API calls during search
         List<Cafe> results = performDatabaseSearch(q, city, lat, lng, radius, wifi, seating, workFriendly, priceRange, minRating);
 
-        // If no results found in database and we have search criteria, try Google Places
-        if ((results == null || results.isEmpty()) && (q != null && !q.isBlank() || city != null && !city.isBlank() || (lat != null && lng != null))) {
-            try {
-                // Build search query - prioritize location-based over text
-                String searchQuery;
-                if (lat != null && lng != null) {
-                    // Use coordinates for location-based search
-                    searchQuery = "coffee shops";
-                } else if (city != null && !city.isBlank()) {
-                    // Use city for search
-                    searchQuery = "coffee shops in " + city;
-                } else {
-                    // Use text query
-                    searchQuery = q + (city != null ? " in " + city : "");
-                }
-
-                List<Cafe> googleCafes = googlePlacesService.searchCafes(searchQuery);
-
-                // Save Google Places data to database, avoiding duplicates
-                googleCafes.forEach(cafe -> {
-                    // Check if cafe already exists (by name and address roughly)
-                    boolean exists = cafeRepo.findAll().stream()
-                            .anyMatch(existing -> existing.getName().equalsIgnoreCase(cafe.getName()) &&
-                                                   existing.getAddress() != null && cafe.getAddress() != null &&
-                                                   existing.getAddress().equalsIgnoreCase(cafe.getAddress()));
-                    if (!exists) {
-                        cafeRepo.save(cafe);
-                    }
-                });
-
-                // Search again to get the saved results with filters
-                results = performDatabaseSearch(q, city, lat, lng, radius, wifi, seating, workFriendly, priceRange, minRating);
-
-            } catch (Exception e) {
-                // If Google Places search fails, continue with empty results
-                // The error is logged by Spring Boot
-            }
-        }
-
+        // Return database results only - Google Places API is only used during initial seeding
         return results != null ? results : new ArrayList<>();
     }
 
