@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import axios from '../utils/api'
 import CafeCard from '../components/CafeCard'
@@ -120,24 +120,48 @@ const Search = () => {
   }
 
   const calculateMapCenter = () => {
-    if (!cafes || cafes.length === 0) return userLocation || { lat: 33.7490, lng: -84.3880 }
-    
-    if (cafes.length === 1) {
-      return { lat: cafes[0].latitude, lng: cafes[0].longitude }
+    // Priority: user location > single cafe > center of all cafes
+    if (userLocation && cafes && cafes.length > 0) {
+      // If user location is available and we have cafes, create a balanced center
+      if (cafes.length === 1) {
+        // For single cafe, center on the cafe itself
+        return { lat: cafes[0].latitude, lng: cafes[0].longitude }
+      } else {
+        // For multiple cafes, center between user location and cafes
+        const cafeCenter = {
+          lat: cafes.reduce((sum, cafe) => sum + cafe.latitude, 0) / cafes.length,
+          lng: cafes.reduce((sum, cafe) => sum + cafe.longitude, 0) / cafes.length
+        }
+
+        // Weight the center towards the user location slightly more than cafe center
+        return {
+          lat: (userLocation.lat * 0.6) + (cafeCenter.lat * 0.4),
+          lng: (userLocation.lng * 0.6) + (cafeCenter.lng * 0.4)
+        }
+      }
     }
 
-    // Calculate center of all cafes
-    const avgLat = cafes.reduce((sum, cafe) => sum + cafe.latitude, 0) / cafes.length
-    const avgLng = cafes.reduce((sum, cafe) => sum + cafe.longitude, 0) / cafes.length
-    
-    return { lat: avgLat, lng: avgLng }
+    // Fallbacks
+    if (cafes && cafes.length > 0) {
+      if (cafes.length === 1) {
+        return { lat: cafes[0].latitude, lng: cafes[0].longitude }
+      }
+
+      // Calculate center of all cafes
+      const avgLat = cafes.reduce((sum, cafe) => sum + cafe.latitude, 0) / cafes.length
+      const avgLng = cafes.reduce((sum, cafe) => sum + cafe.longitude, 0) / cafes.length
+      return { lat: avgLat, lng: avgLng }
+    }
+
+    // No cafes: use user location or Atlanta
+    return userLocation || { lat: 33.7490, lng: -84.3880 }
   }
 
-  const handleCafeSelect = (cafe) => {
+  const handleCafeSelect = useCallback((cafe) => {
     setSelectedCafe(cafe)
     // Navigate to cafe details page
     navigate(`/cafe/${cafe.id}`)
-  }
+  }, [navigate])
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -230,17 +254,18 @@ const Search = () => {
                 </div>
               ) : (
                 <div className="space-y-6">
-                  {/* Map View */}
+                  {/* Map View - Only rendered when in map mode */}
                   <div className="h-96">
                     <CafeMap
+                      key={viewMode} // Force remount when switching to map mode
                       cafes={cafes}
                       center={calculateMapCenter()}
-                      zoom={cafes.length === 1 ? 15 : 12}
+                      zoom={userLocation ? (cafes.length === 1 ? 15 : 12) : (cafes.length === 1 ? 15 : 10)}
                       onCafeSelect={handleCafeSelect}
                       className="w-full h-full rounded-lg"
                     />
                   </div>
-                  
+
                   {/* Selected Cafe Details */}
                   {selectedCafe && (
                     <div className="card">
@@ -265,7 +290,7 @@ const Search = () => {
                       </div>
                     </div>
                   )}
-                  
+
                   {/* Cafe List Below Map */}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {cafes.map(cafe => (
